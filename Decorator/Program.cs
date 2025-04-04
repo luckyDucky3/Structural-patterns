@@ -1,72 +1,140 @@
 ﻿namespace TestTask;
 
-public interface IWeatherService
+internal abstract class Laptop
 {
-    string GetWeather(string city);
+    public string Name { get; protected set; }
+    public abstract int GetPrice();
+    public abstract string GetDescription();
 }
 
-public class RealWeatherService : IWeatherService
+class BasicLaptop : Laptop
 {
-    public string GetWeather(string city)
+    public BasicLaptop()
     {
-        Console.WriteLine($"Запрос погоды для города {city} из реального сервиса...");
-        return $"Погода в {city}: 25°C, солнечно";
-    }
-}
-
-public class LoggingDecorator : IWeatherService
-{
-    private readonly IWeatherService _weatherService;
-
-    public LoggingDecorator(IWeatherService weatherService)
-    {
-        _weatherService = weatherService;
+        Name = "Базовый ноутбук";
     }
 
-    public string GetWeather(string city)
+    public override int GetPrice()
     {
-        Console.WriteLine($"[Лог] Запрос погоды для города: {city}");
-        var result = _weatherService.GetWeather(city);
-        Console.WriteLine($"[Лог] Получен результат: {result}");
-        return result;
+        return 30000;
+    }
+
+    public override string GetDescription()
+    {
+        return "8GB RAM, 256GB HDD, Intel UHD Graphics";
     }
 }
 
-public class CachingDecorator : IWeatherService
+abstract class LaptopUpgrade : Laptop
 {
-    private readonly IWeatherService _weatherService;
-    private readonly Dictionary<string, string> _cache = new();
-
-    public CachingDecorator(IWeatherService weatherService)
+    protected readonly Laptop Laptop;
+    public LaptopUpgrade(Laptop laptop)
     {
-        _weatherService = weatherService;
-    }
-
-    public string GetWeather(string city)
-    {
-        if (_cache.TryGetValue(city, out var weather))
-        {
-            Console.WriteLine($"[Кэш] Возвращаем данные из кэша для {city}");
-            return weather;
-        }
-
-        var result = _weatherService.GetWeather(city);
-        _cache[city] = result;
-        return result;
+        Laptop = laptop;
     }
 }
 
-internal static class Program
+// Апгрейд оперативной памяти
+class RamUpgrade : LaptopUpgrade
 {
-    private static void Main()
+    private readonly int _additionalRam;
+    
+    public RamUpgrade(Laptop laptop, int additionalRam) : base(laptop)
     {
-        IWeatherService weatherService = new RealWeatherService();
+        _additionalRam = additionalRam;
+        Name = $"{Laptop.Name} + {additionalRam}GB RAM";
+    }
+
+    public override int GetPrice()
+    {
+        return Laptop.GetPrice() + (_additionalRam * 500);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{Laptop.GetDescription()}, +{_additionalRam}GB RAM";
+    }
+}
+
+// Апгрейд SSD
+class SsdUpgrade : LaptopUpgrade
+{
+    private readonly int _ssdSize;
+    
+    public SsdUpgrade(Laptop laptop, int ssdSize) : base(laptop)
+    {
+        _ssdSize = ssdSize;
+        Name = $"{Laptop.Name} + {_ssdSize}GB SSD";
+    }
+
+    public override int GetPrice()
+    {
+        return Laptop.GetPrice() + (_ssdSize * 50);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{Laptop.GetDescription()}, +{_ssdSize}GB SSD";
+    }
+}
+
+class GraphicsCardUpgrade : LaptopUpgrade
+{
+    public GraphicsCardUpgrade(Laptop laptop) : base(laptop)
+    {
+        Name = $"{Laptop.Name} + NVIDIA RTX 3060";
+    }
+
+    public override int GetPrice()
+    {
+        return Laptop.GetPrice() + 30_000;
+    }
+
+    public override string GetDescription()
+    {
+        return $"{Laptop.GetDescription()}, NVIDIA RTX 3060";
+    }
+}
+
+internal abstract class Program
+{
+    static void Main()
+    {
+        DisplayBaseLaptop();
+        DisplayLaptopWithRamAndSsd();
+        DisplayMaxConfigurationLaptop();
+    }
+
+    private static void DisplayBaseLaptop()
+    {
+        Laptop laptop1 = new BasicLaptop();
+        Display(laptop1);
+    }
+    
+    private static void DisplayLaptopWithRamAndSsd()
+    {
+        Laptop laptop2 = new BasicLaptop();
+        laptop2 = new RamUpgrade(laptop2, 16); // +16GB RAM
+        laptop2 = new SsdUpgrade(laptop2, 512); // +512GB SSD
+        Display(laptop2);
         
-        weatherService = new CachingDecorator(weatherService);
-        weatherService = new LoggingDecorator(weatherService);
+    }
+    
+    private static void DisplayMaxConfigurationLaptop()
+    {
+        Laptop laptop3 = new BasicLaptop();
+        laptop3 = new RamUpgrade(laptop3, 32); // +32GB RAM
+        laptop3 = new SsdUpgrade(laptop3, 1024); // +1TB SSD
+        laptop3 = new GraphicsCardUpgrade(laptop3); // +Доп. видеокарта
+        Display(laptop3);
         
-        Console.WriteLine(weatherService.GetWeather("Москва"));
-        
-        Console.WriteLine(weatherService.GetWeather("Москва"));
+    }
+
+    private static void Display(Laptop laptop)
+    {
+        Console.WriteLine("Название: {0}", laptop.Name);
+        Console.WriteLine("Цена: {0} руб", laptop.GetPrice());
+        Console.WriteLine("Характеристики: {0}", laptop.GetDescription());
+        Console.WriteLine();
     }
 }
