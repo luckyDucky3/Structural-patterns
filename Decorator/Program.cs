@@ -34,7 +34,6 @@ abstract class LaptopUpgrade : Laptop
     }
 }
 
-// Апгрейд оперативной памяти
 class RamUpgrade : LaptopUpgrade
 {
     private readonly int _additionalRam;
@@ -56,7 +55,6 @@ class RamUpgrade : LaptopUpgrade
     }
 }
 
-// Апгрейд SSD
 class SsdUpgrade : LaptopUpgrade
 {
     private readonly int _ssdSize;

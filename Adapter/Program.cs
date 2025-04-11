@@ -80,8 +80,8 @@ namespace Adapter
     {
         private static NotificationManager CreateNotificationManager()
         {
-            var oldSmsService = new OldSmsService();
-            var adaptedSmsService = new SmsServiceAdapter(oldSmsService, "MyApp");
+            OldSmsService oldSmsService = new OldSmsService();
+            SmsServiceAdapter adaptedSmsService = new SmsServiceAdapter(oldSmsService, "MyApp");
             return new NotificationManager(adaptedSmsService);
         }
         private static void SendSampleNotifications(NotificationManager notificationManager)

@@ -24,12 +24,12 @@ class Mpeg4CompressionCodec
     }
 }
 
-internal class CodecFactory
+internal class CodecExtraction
 {
     public object Extract(VideoFile file) 
     {
         Console.WriteLine("CodecFactory: Извлечение кодека из видеофайла");
-        return new object(); // Возвращаем абстрактный кодек
+        return new object();
     }
 }
 
@@ -38,24 +38,16 @@ internal static class BitrateReader
     public static byte[] Read(string filename, object codec) 
     {
         Console.WriteLine($"BitrateReader: Чтение файла {filename} с кодеком {codec.GetType().Name}");
-        return new byte[1024]; // Возвращаем буфер с данными
+        return new byte[1024];
     }
 
     public static byte[] Convert(byte[] buffer, object codec) 
     {
         Console.WriteLine($"BitrateReader: Конвертация в {codec.GetType().Name}");
-        return buffer; // Возвращаем конвертированные данные
+        return buffer;
     }
 }
 
-internal class AudioMixer
-{
-    public byte[] Fix(byte[] result) 
-    {
-        Console.WriteLine("AudioMixer: Фиксация аудиодорожки");
-        return result;
-    }
-}
 class VideoConverter
 {
     public byte[] Convert(string filename, string format) 
@@ -63,7 +55,7 @@ class VideoConverter
         Console.WriteLine($"VideoConverter: Конвертация {filename} в {format}");
 
         var file = new VideoFile(filename);
-        var sourceCodec = new CodecFactory().Extract(file);
+        var sourceCodec = new CodecExtraction().Extract(file);
 
         object destinationCodec;
         if (format == "mp4")
@@ -73,7 +65,6 @@ class VideoConverter
 
         var buffer = BitrateReader.Read(filename, sourceCodec);
         var result = BitrateReader.Convert(buffer, destinationCodec);
-        result = new AudioMixer().Fix(result);
 
         Console.WriteLine("VideoConverter: Конвертация завершена");
         return result;
