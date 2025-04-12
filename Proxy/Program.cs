@@ -4,7 +4,7 @@ namespace Proxy;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<User?> Users { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -14,7 +14,7 @@ public class AppDbContext : DbContext
 
 public interface IUserService
 {
-    User? GetUserById(int id);
+    Task<User?> GetUserByIdAsync(int id);
 }
 
 public class UserService : IUserService
@@ -26,10 +26,10 @@ public class UserService : IUserService
         _db = db;
     }
 
-    public User? GetUserById(int id)
+    public async Task<User?> GetUserByIdAsync(int id)
     {
         Console.WriteLine($"[Database] Запрос пользователя с ID {id}");
-        return _db.Users.FirstOrDefault(u => u.Id == id);
+        return await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 }
 
@@ -43,7 +43,7 @@ public class CachingUserServiceProxy : IUserService
         _userService = userService;
     }
 
-    public User? GetUserById(int id)
+    public async Task<User?> GetUserByIdAsync(int id)
     {
         if (_cache.TryGetValue(id, out var cachedUser))
         {
@@ -51,7 +51,7 @@ public class CachingUserServiceProxy : IUserService
             return cachedUser;
         }
 
-        var user = _userService.GetUserById(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user != null)
         {
             _cache[id] = user;
@@ -64,17 +64,18 @@ public class CachingUserServiceProxy : IUserService
 
 class Program
 {
-    private static void GetUser(CachingUserServiceProxy proxy, int userId)
+    private static async Task GetUser(CachingUserServiceProxy proxy, int userId)
     {
-        Console.WriteLine($"User {userId}: {proxy.GetUserById(userId)?.Name}");
+        var user = await proxy.GetUserByIdAsync(userId);
+        Console.WriteLine($"User {userId}: {user?.Name}");
         Console.WriteLine();
     }
     
     
     
-    static void Main()
+    static async Task Main()
     {
-        using var db = new AppDbContext();
+        await using var db = new AppDbContext();
         
         // db.Database.EnsureCreated();
         //
@@ -85,8 +86,8 @@ class Program
         var realService = new UserService(db);
         var cachingProxy = new CachingUserServiceProxy(realService);
         
-        GetUser(cachingProxy, 1);
-        GetUser(cachingProxy, 1);
-        GetUser(cachingProxy, 2);
+        await GetUser(cachingProxy, 1);
+        await GetUser(cachingProxy, 1);
+        await GetUser(cachingProxy, 2);
     }
 }
