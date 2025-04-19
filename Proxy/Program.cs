@@ -64,7 +64,7 @@ public class CachingUserServiceProxy : IUserService
 
 class Program
 {
-    private static async Task GetUser(CachingUserServiceProxy proxy, int userId)
+    private static async Task GetUser(IUserService proxy, int userId)
     {
         var user = await proxy.GetUserByIdAsync(userId);
         Console.WriteLine($"User {userId}: {user?.Name}");
@@ -76,13 +76,7 @@ class Program
     static async Task Main()
     {
         await using var db = new AppDbContext();
-        
-        // db.Database.EnsureCreated();
-        //
-        // db.Users.Add(new User { Id = 1, Name = "Alice", Email = "alice@example.com" });
-        // db.Users.Add(new User { Id = 2, Name = "Bob", Email = "bob@example.com" });
-        // db.SaveChanges();
-        
+
         var realService = new UserService(db);
         var cachingProxy = new CachingUserServiceProxy(realService);
         

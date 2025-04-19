@@ -18,7 +18,6 @@ public interface IRenderer
     void RenderSquare(float side);
 }
 
-// Векторный рендеринг (SVG, PDF)
 public class VectorRenderer : IRenderer
 {
     public void RenderCircle(float diametr)
@@ -32,7 +31,6 @@ public class VectorRenderer : IRenderer
     }
 }
 
-// Растровый рендеринг (PNG, JPEG)
 public class RasterRenderer : IRenderer
 {
     public void RenderCircle(float diametr)
@@ -48,16 +46,16 @@ public class RasterRenderer : IRenderer
 
 public class Circle : Shape
 {
-    private float radius;
+    private float diametr;
 
-    public Circle(IRenderer renderer, float radius) : base(renderer)
+    public Circle(IRenderer renderer, float diametr) : base(renderer)
     {
-        this.radius = radius;
+        this.diametr = diametr;
     }
 
     public override void Draw()
     {
-        renderer.RenderCircle(radius);
+        renderer.RenderCircle(diametr);
     }
 }
 
